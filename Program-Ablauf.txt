@@ -1,0 +1,74 @@
+Ablauf des Go File Renamer
+--------------------------										
+													(\___/)
+1. Package Deklarieren								(=','=)
+2. Imports importieren						        (>   <)
+													(")_(")
+-------------------------------------
+3. Angabe des Ordners, wo die Bilder drin sind
+
+-------------------------------------
+4. Den Namen angeben von den Dateien die umbenannt werden sollen
+	^
+	|-- Es sollen keine Nummern angegeben werden
+
+-------------------------------------
+5. Den neuen Namen von den Dateien angeben
+	^
+	|-- Ohne Nummern, werden automatisch mit drangefügt 
+
+-------------------------------------
+
+
+6. DATEIEN WERDEN UMBENANNT
+
+
+--- Optional ---
+
+7. Der User wird gefragt ob die Dateien wieder zurück benannt werden soll
+
+8. User schreibt Nein -> Program wird beendet
+
+9. User schreibt Ja -> die Funktion reverts wird ausgeführt um mit den schon angegebenen Daten die Dateien wieder zurück zu benennen.
+
+10. User schreibt nichts von beiden -> Error( invalid Character) & Frage wird erneut gestellt
+
+
+<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+Gedanken zum File Renamer
+--------------------------
+
+- Abfrage		-- Main Funktion
+- Dateien Suche		-- Eigene Funktion
+- Umbennenung		-- Direkt mit in der Datei Suche
+- Reverting		-- Eigene Funktion
+
+
+
+- Abfrage findet in der Main Funktion statt
+	^
+	|-- sodass andere Funktionen zugriff auf die Variablen haben, wo die Daten gespeichert sind (Filename, dir)
+
+	|-- Im moment mit Bufio.Newreader
+		^
+		|-- Sieht aber nicht optimal aus
+		
+		|-- wird noch geguckt, ob es eine bessere Funktion dazu gibt, um input vom User zu lesen.
+
+-------------------------------------
+- Eine Funktion für die Dateien Suche
+	^
+	|-- per Regexp und filepath.Walk
+
+	|-- Wenn man was besseres findet wird die ausprobiert und eingebaut
+
+-------------------------------------
+- Revert Funktion tauscht die Variablen für die Datei Namen ( alt -> neu, neu -> alt )
+	^
+	|-- Damit nach den neuen Dateien gesucht werden, und die dann zum 											    alten Namen wieder umbenannt werden 
+
+	|-- Ruft die Funktion für die Datei Suche auf ( mit den neuen werten)
+
+-------------------------------------
+- 
