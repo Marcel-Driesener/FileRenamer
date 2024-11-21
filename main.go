@@ -27,8 +27,9 @@ func main() {
 	newFileName, _ := nfn.ReadString('\n')
 	newFileName = strings.TrimSpace(newFileName)
 
+	fmt.Println("Sollen nur Dateien mit einem bestimmten Namen umbenannt werden?: ")
 	ent := bufio.NewReader(os.Stdin)
-	fmt.Println("Sollen nur Dateien mit einem bestimmten Namen umbenannt werden? Yes-(bestimmter Name) | No-(Alle). (Y/N): ")
+	fmt.Println("Yes / No (alle dateien): ")
 	entscheidung, _ := ent.ReadString('\n')
 	entscheidung = strings.TrimSpace(entscheidung)
 	entscheidung = strings.ToUpper(entscheidung)
@@ -45,6 +46,8 @@ func main() {
 }
 
 func findAllFiles(dir, newFileName string) {
+
+	fmt.Println("Alle Dateien (ohne unterordner) werden umbenannt.")
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -65,6 +68,7 @@ func findAllFiles(dir, newFileName string) {
 			i++
 		}
 	}
+	fmt.Println("Dateien wurden umbenannt.")
 }
 
 func findSpecificFiles(dir, newFileName string) {
@@ -87,13 +91,15 @@ func findSpecificFiles(dir, newFileName string) {
 		if !info.IsDir() && re.MatchString(info.Name()) {
 			fmt.Println(info.Name())
 		}
+		i := 1
 		if strings.Contains(info.Name(), oldFileName) {
 			ext := filepath.Ext(info.Name())
-			err := os.Rename(path, filepath.Join(filepath.Dir(path), newFileName+ext))
+			err := os.Rename(path, filepath.Join(filepath.Dir(path), newFileName+strconv.Itoa(i)+ext))
 			if err != nil {
 				fmt.Println("Fehler beim umbenennen:", err)
 				return err
 			}
+			i++
 		}
 		return nil
 	})
