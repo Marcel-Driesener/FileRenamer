@@ -81,33 +81,30 @@ func findSpecificFiles(dir, newFileName string) error {
 	}
 	oldFileName = strings.TrimSpace(oldFileName)
 
-	pattern := oldFileName + "\\d{20}.*"
+	pattern := oldFileName + "\\d+[a-zA-Z]*"
 	re := regexp.MustCompile(pattern)
 
-	// Walk through the directory tree
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	fmt.Println("Alle Dateien (ohne unterordner) werden umbenannt.")
 
-		// Check if it's a regular file and if it matches the pattern
-		if !info.IsDir() && re.MatchString(info.Name()) {
-			fmt.Println(info.Name())
-
-			ext := filepath.Ext(info.Name())
-			newPath := filepath.Join(dir, newFileName+strconv.Itoa(1)+ext)
-			err = os.Rename(oldFileName, newPath)
-			if err != nil {
-				fmt.Println("Error renaming", path, ":", err)
-			}
-		}
-
-		return nil
-	})
-
+	files, err := os.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("Error walking directory: %w", err)
+		fmt.Println(err)
+		return
 	}
 
-	return nil
+	i := 1
+	for _, file := range files {
+		if !file.IsDir() && re.MatchString() {
+			oldPath := filepath.Join(dir, file.Name())
+			ext := filepath.Ext(file.Name())
+			newPath := filepath.Join(dir, newFileName+strconv.Itoa(i)+ext)
+			err = os.Rename(oldPath, newPath)
+			if err != nil {
+				fmt.Println(err)
+			}
+			i++
+		}
+	}
+	fmt.Println("Dateien wurden umbenannt.")
+}
 }
