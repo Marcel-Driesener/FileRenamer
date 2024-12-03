@@ -71,40 +71,37 @@ func findAllFiles(dir, newFileName string) {
 	fmt.Println("Dateien wurden umbenannt.")
 }
 
-func findSpecificFiles(dir, newFileName string) error {
+func findSpecificFiles(dir, newFileName string) {
 
 	ofn := bufio.NewReader(os.Stdin)
-	fmt.Print("Gib den Namen (z.B Birthday-) der Dateien an die umbenannt werden soll: ")
-	oldFileName, err := ofn.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("Error reading user input: %w", err)
-	}
+	fmt.Println("Gib den Namen der Datei an, die umbenannt werden soll: ")
+	oldFileName, _ := ofn.ReadString('\n')
 	oldFileName = strings.TrimSpace(oldFileName)
 
-	pattern := oldFileName + "\\d+[a-zA-Z]*"
-	re := regexp.MustCompile(pattern)
-
-	fmt.Println("Alle Dateien (ohne unterordner) werden umbenannt.")
-
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	i := 1
-	for _, file := range files {
-		if !file.IsDir() && re.MatchString() {
-			oldPath := filepath.Join(dir, file.Name())
-			ext := filepath.Ext(file.Name())
-			newPath := filepath.Join(dir, newFileName+strconv.Itoa(i)+ext)
-			err = os.Rename(oldPath, newPath)
-			if err != nil {
-				fmt.Println(err)
-			}
-			i++
+
+	re := regexp.MustCompile("^" + oldFileName + ".*")
+
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			fmt.Println("Error accessing file:", err)
+			return err
 		}
+		if !d.IsDir() && re.MatchString(d.Name()) {
+			ext := filepath.Ext(d.Name())
+			err := os.Rename(path, filepath.Join(filepath.Dir(path), newFileName+strconv.Itoa(i)+ext))
+			if err != nil {
+				fmt.Println("Error renaming file:", err)
+			} else {
+				i++
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("Error walking directory:", err)
+	} else {
+		fmt.Println("Dateien wurden umbenannt.")
 	}
-	fmt.Println("Dateien wurden umbenannt.")
-}
 }
