@@ -1,8 +1,8 @@
 Ablauf des Go File Renamer
 --------------------------										
 													(\___/)
-1. Package Deklarieren								(=','=)
-2. Imports importieren						        (>   <)
+1. Package Deklarieren											(=','=)
+2. Imports importieren						      					(>   <)
 													(")_(")
 -------------------------------------
 3. Angabe des Ordners, wo die Bilder drin sind
@@ -66,9 +66,9 @@ Gedanken zum File Renamer
 -------------------------------------
 - Revert Funktion tauscht die Variablen für die Datei Namen ( alt -> neu, neu -> alt )
 	^
-	|-- Damit nach den neuen Dateien gesucht werden, und die dann zum 											    alten Namen wieder umbenannt werden 
+	|-- Damit nach den neuen Dateien gesucht werden, und die dann zum 	
+	    alten Namen wieder umbenannt werden 
 
 	|-- Ruft die Funktion für die Datei Suche auf ( mit den neuen werten)
 
 -------------------------------------
-- 
