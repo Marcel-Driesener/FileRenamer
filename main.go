@@ -6,92 +6,56 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
 func main() {
-
 	fmt.Println("Willkommen zum File Renamer\n------------------")
-	fmt.Println("Hier kannst du deine Dateien alle auf einmal umbenennen.\nWähle zwischen 2 Optionen: Alle Dateien im Ordner oder Welche mit bestimmten Namen")
-	fmt.Println("\nImportant!")
-	fmt.Println("Die Dateien werden OHNE die Nummern und dem Dateiformat angegeben (z.B 'Birthday-1.txt' wird zu 'Birthday-')\n es werden automatisch alle Dateien ausgewählt, die gleich heißen.\n Das selbe gilt für den neuen Namen, es wird automatisch alle Dateien gleich benannt, und nur mit einer Nummer unterschieden (Birthday_1,Birthday_2,...)")
+	fmt.Println("Hier kannst du deine Dateien alle auf einmal umbenennen.")
+	fmt.Println("Wähle zwischen 2 Optionen: Alle Dateien im Ordner (inklusive Unterordner) oder nur bestimmte Dateien")
+	fmt.Println("\nHinweis:")
+	fmt.Println("Die Dateien werden ohne die Nummern und das Dateiformat angegeben (z.B. 'Birthday-1.txt' wird zu 'Birthday-').")
+	fmt.Println("Automatisch werden alle Dateien ausgewählt, die gleich heißen.")
+	fmt.Println("Beim neuen Namen werden alle Dateien gleich benannt und nur durch eine Nummer unterschieden (z.B. 'Birthday_1', 'Birthday_2', ...)")
 
-	path := bufio.NewReader(os.Stdin)
-	fmt.Print("Gib den Pfad (z.B. C:\\User\\Fotos) zum Ordner an: ")
-	dir, _ := path.ReadString('\n')
-	dir = strings.TrimSpace(dir)
+	dir := getInput("Gib den Pfad zum Ordner an (z.B. C:\\User\\Fotos): ")
+	newFileName := getInput("Gib den neuen Namen an, wie die Dateien heißen sollen: ")
 
-	nfn := bufio.NewReader(os.Stdin)
-	fmt.Print("Gib den neuen namen an wie die Dateien heißen solllen: ")
-	newFileName, _ := nfn.ReadString('\n')
-	newFileName = strings.TrimSpace(newFileName)
+	choice := getInput("Sollen nur Dateien mit einem bestimmten Namen umbenannt werden? (yes/no): ")
+	choice = strings.ToLower(choice)
 
-	fmt.Println("Sollen nur Dateien mit einem bestimmten Namen umbenannt werden?: ")
-	ent := bufio.NewReader(os.Stdin)
-	fmt.Println("Yes / No (alle dateien): ")
-	entscheidung, _ := ent.ReadString('\n')
-	entscheidung = strings.TrimSpace(entscheidung)
-	entscheidung = strings.ToUpper(entscheidung)
-
-	switch entscheidung {
-	case "NO", "N":
-		findAllFiles(dir, newFileName)
-	case "YES", "Y":
-		findSpecificFiles(dir, newFileName)
+	switch choice {
+	case "no", "n":
+		renameAllFiles(dir, newFileName)
+	case "yes", "y":
+		renameSpecificFiles(dir, newFileName)
 	default:
-		fmt.Println("Invalid Characters")
+		fmt.Println("Ungültige Eingabe. Das Programm wird beendet.")
 	}
-
 }
 
-func findAllFiles(dir, newFileName string) {
-
-	fmt.Println("Alle Dateien (ohne unterordner) werden umbenannt.")
-
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	i := 1
-	for _, file := range files {
-		if !file.IsDir() {
-			oldPath := filepath.Join(dir, file.Name())
-			ext := filepath.Ext(file.Name())
-			newPath := filepath.Join(dir, newFileName+strconv.Itoa(i)+ext)
-			err = os.Rename(oldPath, newPath)
-			if err != nil {
-				fmt.Println(err)
-			}
-			i++
-		}
-	}
-	fmt.Println("Dateien wurden umbenannt.")
+func getInput(prompt string) string {
+	fmt.Print(prompt)
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }
 
-func findSpecificFiles(dir, newFileName string) {
-
-	ofn := bufio.NewReader(os.Stdin)
-	fmt.Println("Gib den Namen der Datei an, die umbenannt werden soll: ")
-	oldFileName, _ := ofn.ReadString('\n')
-	oldFileName = strings.TrimSpace(oldFileName)
+func renameAllFiles(dir, newFileName string) {
+	fmt.Println("Alle Dateien (inklusive Unterordner) werden umbenannt...")
 
 	i := 1
-
-	re := regexp.MustCompile("^" + oldFileName + ".*")
-
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			fmt.Println("Error accessing file:", err)
+			fmt.Printf("Fehler beim Zugriff auf Datei '%s': %v\n", path, err)
 			return err
 		}
-		if !d.IsDir() && re.MatchString(d.Name()) {
+		if !d.IsDir() {
 			ext := filepath.Ext(d.Name())
-			err := os.Rename(path, filepath.Join(filepath.Dir(path), newFileName+strconv.Itoa(i)+ext))
-			if err != nil {
-				fmt.Println("Error renaming file:", err)
+			newPath := filepath.Join(filepath.Dir(path), fmt.Sprintf("%s%d%s", newFileName, i, ext))
+
+			if err := os.Rename(path, newPath); err != nil {
+				fmt.Printf("Fehler beim Umbenennen von '%s': %v\n", d.Name(), err)
 			} else {
 				i++
 			}
@@ -100,8 +64,41 @@ func findSpecificFiles(dir, newFileName string) {
 	})
 
 	if err != nil {
-		fmt.Println("Error walking directory:", err)
+		fmt.Printf("Fehler beim Durchsuchen des Verzeichnisses: %v\n", err)
 	} else {
-		fmt.Println("Dateien wurden umbenannt.")
+		fmt.Println("Dateien wurden erfolgreich umbenannt.")
+	}
+}
+
+func renameSpecificFiles(dir, newFileName string) {
+	oldFileName := getInput("Gib den Namen der Datei an, die umbenannt werden soll: ")
+	pattern := fmt.Sprintf("^%s.*", regexp.QuoteMeta(oldFileName))
+	re := regexp.MustCompile(pattern)
+
+	fmt.Println("Die entsprechenden Dateien werden umbenannt...")
+
+	i := 1
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			fmt.Printf("Fehler beim Zugriff auf Datei '%s': %v\n", path, err)
+			return err
+		}
+		if !d.IsDir() && re.MatchString(d.Name()) {
+			ext := filepath.Ext(d.Name())
+			newPath := filepath.Join(filepath.Dir(path), fmt.Sprintf("%s%d%s", newFileName, i, ext))
+
+			if err := os.Rename(path, newPath); err != nil {
+				fmt.Printf("Fehler beim Umbenennen von '%s': %v\n", d.Name(), err)
+			} else {
+				i++
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Printf("Fehler beim Durchsuchen des Verzeichnisses: %v\n", err)
+	} else {
+		fmt.Println("Dateien wurden erfolgreich umbenannt.")
 	}
 }
